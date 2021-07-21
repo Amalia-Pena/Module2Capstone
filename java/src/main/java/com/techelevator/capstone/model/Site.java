@@ -1,4 +1,4 @@
-package com.sample;
+package com.techelevator.capstone.model;
 
 
 public class Site {

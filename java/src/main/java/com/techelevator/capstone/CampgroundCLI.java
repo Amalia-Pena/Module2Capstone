@@ -1,5 +1,6 @@
 package com.techelevator.capstone;
 
+import com.techelevator.capstone.dao.JdbcParkDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -16,6 +17,8 @@ public class CampgroundCLI implements CommandLineRunner {
     public CampgroundCLI(DataSource dataSource){
         this.dataSource = dataSource;
         // create your DAOs here
+        JdbcParkDao jdbcParkDao = new JdbcParkDao(dataSource);
+
     }
 
     public static void main(String[] args) {
