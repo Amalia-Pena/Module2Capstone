@@ -4,17 +4,11 @@ import com.techelevator.capstone.dao.JdbcCampgroundDao;
 import com.techelevator.capstone.dao.JdbcParkDao;
 import com.techelevator.capstone.dao.JdbcReservationDao;
 import com.techelevator.capstone.dao.JdbcSiteDao;
-import com.techelevator.capstone.model.Campground;
-import com.techelevator.capstone.model.Park;
-import com.techelevator.capstone.model.Site;
 import com.techelevator.capstone.view.Menu;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cglib.core.Local;
-
-import javax.jws.soap.SOAPBinding;
 import javax.sql.DataSource;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -35,7 +29,6 @@ public class CampgroundCLI implements CommandLineRunner {
     private JdbcSiteDao jdbcSiteDao;
     private JdbcReservationDao jdbcReservationDao;
     private Menu menu;
-    private String[] view_park_options;
     private String parkName;
     private Long campgroundSelection;
     private Long parkSelection;
@@ -76,7 +69,7 @@ public class CampgroundCLI implements CommandLineRunner {
 
             // Get park id from user choice
             parkSelection = getParkSelection(parkOptions, choice);
-
+            System.out.println("\nSelect a Command");
             // Get user choice for campground select screen
             choice = (String) menu.getChoiceFromOptionsAlternative(SELECT_CAMPGROUND_MENU);
             if (choice.equals(VIEW_CAMPGROUNDS)) {
@@ -84,30 +77,36 @@ public class CampgroundCLI implements CommandLineRunner {
                 choice = (String) menu.getChoiceFromOptionsAlternative(SEARCH_RESERVATION_MENU);
 
                 if (choice.equals(SEARCH_AVAILABLE_RESERVATION)) {
-                    createCampgroundView(parkSelection);
+                    choice = SEARCH_RESERVATION;
+
                 } else {
                     run();
                 }
-            } else if (choice.equals(SEARCH_RESERVATION)) {
+            }
+            if (choice.equals(SEARCH_RESERVATION)) {
                 // Get campground selection
                 createCampgroundView(parkSelection);
-                campgroundSelection = getUserCampgroundSelection(parkSelection, scanner);
+                campgroundSelection = getUserCampgroundSelection(scanner);
 
                 if (campgroundSelection != null) {
                     // Get reservation dates (Need to test user input)
                     LocalDate[] reservationDates = getUserReservationDates(scanner);
                     createSiteView(campgroundSelection, reservationDates[0], reservationDates[1]);
+                    Long reservationId = getReservationSelection(scanner, reservationDates[0], reservationDates[1]);
+                    if(reservationId != null){
+                        System.out.println("The reservation has been made and the confirmation id is " + reservationId);
+                        System.out.println("Thank you, goodbye!");
+                        System.exit(0);
+                    }
                 } else {
+                    // Return to main menu
                     run();
                 }
-
             } else {
                 // Return to main menu
                 run();
             }
-
         }
-
     }
 
     // Create list of parks
@@ -121,9 +120,7 @@ public class CampgroundCLI implements CommandLineRunner {
             } else {
                 viewParkOptionsArray[i] = "quit";
             }
-
         }
-
         return viewParkOptionsArray;
     }
 
@@ -141,14 +138,14 @@ public class CampgroundCLI implements CommandLineRunner {
 
     public void createCampgroundView(Long parkSelection) {
         jdbcCampgroundDao.createCampgroundsList(parkSelection);
-        System.out.println("\nPark Campgrounds \n" + parkName + " Park Campgrounds\n" +
+        System.out.println("\nPark Campgrounds \n" + parkName + " National Park Campgrounds\n" +
                 "\n     Name         Open    Close      Daily Fee");
         for (int i = 0; i < jdbcCampgroundDao.getCampGroundsList().size(); i++) {
             System.out.println("#" + (i + 1) + " " + jdbcCampgroundDao.getCampGroundsList().get(i).toString());
         }
     }
 
-    public Long getUserCampgroundSelection(Long parkSelection, Scanner scanner) {
+    public Long getUserCampgroundSelection(Scanner scanner) {
         Long selectedCampground = null;
 
         while (selectedCampground == null) {
@@ -178,12 +175,14 @@ public class CampgroundCLI implements CommandLineRunner {
 
         System.out.println("What is the arrival date? yyyy/mm/dd");
         userInput = scanner.nextLine();
-        reservationDates[0] = LocalDate.of(Integer.valueOf(userInput.substring(0, 3)), Integer.valueOf(userInput.substring(5, 7)), Integer.valueOf(userInput.substring(8)));
+        reservationDates[0] = LocalDate.of(Integer.valueOf(userInput.substring(0, 4)), Integer.valueOf(userInput.substring(5, 7)), Integer.valueOf(userInput.substring(8)));
 
         System.out.println("What is the departure date? yyyy/mm/dd");
         userInput = scanner.nextLine();
-        reservationDates[1] = LocalDate.of(Integer.valueOf(userInput.substring(0, 3)), Integer.valueOf(userInput.substring(5, 7)), Integer.valueOf(userInput.substring(8)));
+        reservationDates[1] = LocalDate.of(Integer.valueOf(userInput.substring(0, 4)), Integer.valueOf(userInput.substring(5, 7)), Integer.valueOf(userInput.substring(8)));
 
+        System.out.println("Date from: " + reservationDates[0]);
+        System.out.println("Date to: " + reservationDates[1]);
         return reservationDates;
     }
 
@@ -202,32 +201,46 @@ public class CampgroundCLI implements CommandLineRunner {
 
     }
 
-    public Long getReservationSelection(Long campgroundSelection, Scanner scanner) {
-        Long selectedSite = null;
+    public Long getReservationSelection(Scanner scanner, LocalDate from_Date, LocalDate to_Date) {
+        Long reservationId = null;
         List<Long> listOfSiteNumbers = new ArrayList<>();
 
         for (int  i= 0;  i < jdbcSiteDao.getSiteList().size(); i++) {
             listOfSiteNumbers.add(jdbcSiteDao.getSiteList().get(i).getSiteNumber());
         }
 
-        while (selectedSite == null) {
+        while (reservationId == null) {
             System.out.println("Which site should be reserved (enter 0 to cancel)?");
             String userInput = scanner.nextLine();
             try {
+                Long selectedOptionLong = Long.valueOf(userInput);
                 int selectedOption = Integer.valueOf(userInput);
-                if (listOfSiteNumbers.contains(selectedOption)) {
-                    selectedSite = jdbcSiteDao.getSiteList().get(selectedOption - 1).getSiteId();
+                if (listOfSiteNumbers.contains(selectedOptionLong)) {
+                    reservationId = createReservation(jdbcSiteDao.getSiteList().get(selectedOption - 1).getSiteId(), scanner, from_Date, to_Date);
                 } else if (selectedOption == 0) {
                     break;
                 }
             } catch (NumberFormatException e) {
                 // eat the exception, an error message will be displayed below since choice will be null
             }
-            if (selectedSite == null) {
+            if (reservationId == null) {
                 System.out.println((System.lineSeparator() + "*** " + userInput + " is not a valid option ***" + System.lineSeparator()));
             }
         }
-        return selectedSite;
+        return reservationId;
+    }
+
+    public Long createReservation(Long siteSelection, Scanner scanner, LocalDate from_date, LocalDate to_date){
+        Long reservationId = null;
+
+        while (reservationId == null) {
+            System.out.println("What name should the reservation be made under?");
+            String userInput = scanner.nextLine();
+            if (userInput.length() >= 0){
+                reservationId = jdbcReservationDao.makeReservation(siteSelection, userInput, from_date, to_date );
+            }
+        }
+        return reservationId;
     }
 
 }
