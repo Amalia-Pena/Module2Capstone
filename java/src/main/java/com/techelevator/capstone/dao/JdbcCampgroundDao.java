@@ -11,19 +11,18 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class JdbcCampgroundDao implements CampgroundDao {
-
+    // Instance variables
     private final JdbcTemplate jdbcTemplate;
+    private List<Campground> campGroundsList;
 
     public JdbcCampgroundDao(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     @Override
-    public List<Campground> getCampgrounds(Long parkSelection) {
+    public void createCampgroundsList(Long parkSelection) {
         String sql = "SELECT * FROM campground WHERE park_id = ? ORDER BY campground_id;";
-        List<Campground> campgroundList = jdbcTemplate.query(sql, new CampgroundRowMapper(), parkSelection);
-        return campgroundList;
-
+        campGroundsList = jdbcTemplate.query(sql, new CampgroundRowMapper(), parkSelection);
     }
 
     class CampgroundRowMapper implements RowMapper {
@@ -39,5 +38,9 @@ public class JdbcCampgroundDao implements CampgroundDao {
 
             return campground;
         }
+    }
+
+    public List<Campground> getCampGroundsList(){
+        return campGroundsList;
     }
 }

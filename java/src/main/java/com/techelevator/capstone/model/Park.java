@@ -74,5 +74,15 @@ public class Park {
     this.description = description;
   }
 
+  public void displayPark(){
+    System.out.println("Park Information Screen");
+    System.out.println(name + " National Park");
+    System.out.println("Location: " + location);
+    System.out.println("Established: " + establishDate);
+    System.out.println("Area: " + area);
+    System.out.println("Annual visitors: " + visitors);
+    System.out.println("\n" + getDescription());
+
+  }
 
 }

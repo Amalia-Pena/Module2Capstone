@@ -6,6 +6,6 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface SiteDao {
-    List<Site> getAvailableSites(Long campgroundSelection, LocalDate from_date, LocalDate to_date);
+    void getAvailableSites(Long campgroundSelection, LocalDate from_date, LocalDate to_date);
 
 }

@@ -74,4 +74,28 @@ public class Site {
     this.utilities = utilities;
   }
 
+  public String toString(){
+    String maxRvLengthString = "";
+    if (accessible.equals("f")){
+      accessible = "No";
+    }
+    else if(accessible.equals("t")){
+      accessible = "Yes";
+    }
+    if(maxRvLength == 0){
+      maxRvLengthString = "N/A";
+    }
+    else {
+      maxRvLengthString = maxRvLength + "";
+    }
+    if (utilities.equals("f")){
+      utilities = "N/A";
+    }
+    else if(utilities.equals("t")){
+      utilities = "Yes";
+    }
+
+    return siteNumber + " " + maxOccupancy + " " + accessible + " " + maxRvLengthString + " " + utilities + " ";
+  }
+
 }

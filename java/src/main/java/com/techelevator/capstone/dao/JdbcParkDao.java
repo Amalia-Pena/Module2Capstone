@@ -10,17 +10,18 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class JdbcParkDao implements ParkDao {
-
+    // Instance variables
     private final JdbcTemplate jdbcTemplate;
+    private List<Park> parkList;
 
+    // Constructor
     public JdbcParkDao(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
     @Override
-    public List<Park> getParks() {
+    public void getParks() {
         String sql = "SELECT * FROM park ORDER BY name;";
-        List<Park> parkList = jdbcTemplate.query(sql, new ParkRowMapper());
-        return parkList;
+        parkList =  jdbcTemplate.query(sql, new ParkRowMapper());
     }
 
     class ParkRowMapper implements RowMapper {
@@ -41,6 +42,11 @@ public class JdbcParkDao implements ParkDao {
             park.setDescription(resultSet.getString("description"));
             return park;
         }
+    }
+
+    // Getters
+    public List<Park> getParkList(){
+        return parkList;
     }
 
 

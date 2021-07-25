@@ -5,5 +5,5 @@ import com.techelevator.capstone.model.Campground;
 import java.util.List;
 
 public interface CampgroundDao {
-    List <Campground> getCampgrounds(Long parkSelection);
+    public void createCampgroundsList(Long parkSelection);
 }

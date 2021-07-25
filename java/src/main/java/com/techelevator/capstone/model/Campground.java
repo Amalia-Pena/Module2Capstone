@@ -64,4 +64,8 @@ public class Campground {
     this.dailyFee = dailyFee;
   }
 
+  public String toString(){
+    return name + " " + openFromMm + " " + openToMm + " " + dailyFee;
+  }
+
 }

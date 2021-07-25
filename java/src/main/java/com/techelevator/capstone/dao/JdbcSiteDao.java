@@ -15,37 +15,34 @@ import java.util.List;
 public class JdbcSiteDao implements SiteDao {
 
     private final JdbcTemplate jdbcTemplate;
+    private List<Site> siteList;
 
     public JdbcSiteDao(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     @Override
-    public List<Site> getAvailableSites(Long campgroundSelection, LocalDate from_date, LocalDate to_date) {
-        String sql = "Select DISTINCT site_number, campground.campground_id\n" +
-                "From site\n" +
-                "         Left Join reservation on reservation.site_id = site.site_id\n" +
-                "         Join campground on site.campground_id = campground.campground_id\n" +
-                "WHERE site_number not in (Select site_number\n" +
-                "                          From site\n" +
-                "                                   Left Join reservation on reservation.site_id = site.site_id\n" +
-                "                                   Join campground on site.campground_id = campground.campground_id\n" +
-                "                          WHERE (reservation.from_date, reservation.to_date) overlaps (?,?) AND site.campground_id = ?\n" +
+    public void getAvailableSites(Long campgroundSelection, LocalDate from_date, LocalDate to_date) {
+        // Incrementing the days by one because overlaps method is not inclusive
+        from_date.minusDays(1);
+        to_date.plusDays(1);
+
+        String sql = "SELECT DISTINCT site.site_id, site.campground_id, site_number, max_occupancy, accessible, max_rv_length, utilities\n" +
+                "FROM site\n" +
+                "         LEFT JOIN reservation ON reservation.site_id = site.site_id\n" +
+                "         JOIN campground ON site.campground_id = campground.campground_id\n" +
+                "WHERE site_number NOT IN (SELECT site_number\n" +
+                "                          FROM site\n" +
+                "                                   LEFT JOIN reservation ON reservation.site_id = site.site_id\n" +
+                "                                   JOIN campground ON site.campground_id = campground.campground_id\n" +
+                "                          WHERE (reservation.from_date, reservation.to_date) OVERLAPS (?,?) AND site.campground_id = ?\n" +
                 "                          ORDER BY site_number)\n" +
-                "                and campground.campground_id = ?\n" +
+                "                AND campground.campground_id = ?\n" +
                 "ORDER BY site_number\n" +
                 "limit 5;";
 
-        String sql2 = "Select DISTINCT site.site_id, site.campground_id, site_number, max_occupancy, accessible, max_rv_length, utilities\n" +
-                "From site\n" +
-                "         Join reservation on reservation.site_id = site.site_id\n" +
-                "         Join campground on site.campground_id = campground.campground_id\n" +
-                "WHERE (?,?) overlaps (reservation.from_date, reservation.to_date) is false AND site.campground_id = ?\n" +
-                "ORDER BY site_number;";
 
-
-        List<Site> siteList = jdbcTemplate.query(sql2, new SiteRowMapper(), from_date, to_date, campgroundSelection);
-        return siteList;
+        siteList = jdbcTemplate.query(sql, new SiteRowMapper(), from_date, to_date, campgroundSelection,campgroundSelection);
     }
 
 
@@ -64,6 +61,10 @@ public class JdbcSiteDao implements SiteDao {
 
             return site;
         }
+    }
+
+    public List<Site> getSiteList(){
+        return siteList;
     }
 
 
