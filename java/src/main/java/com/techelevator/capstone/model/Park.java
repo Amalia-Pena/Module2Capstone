@@ -75,13 +75,26 @@ public class Park {
   }
 
   public void displayPark(){
-    System.out.println("Park Information Screen");
+    int counter = 0;
+    int lineBreak = 80;
+    System.out.println("\nPark Information Screen");
     System.out.println(name + " National Park");
     System.out.println("Location: " + location);
     System.out.println("Established: " + establishDate);
     System.out.println("Area: " + area);
-    System.out.println("Annual visitors: " + visitors);
-    System.out.println("\n" + getDescription());
+    System.out.println("Annual visitors: " + visitors +"\n");
+    while (counter < description.length()){
+      if(counter + lineBreak > description.length()){
+        System.out.println(description.substring(counter));
+        counter = description.length();
+      }
+      else{
+        System.out.println(description.substring(counter,lineBreak));
+        counter += 80;
+        lineBreak += 80;
+      }
+
+    }
 
   }
 

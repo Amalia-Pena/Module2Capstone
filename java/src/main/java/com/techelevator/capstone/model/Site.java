@@ -74,28 +74,36 @@ public class Site {
     this.utilities = utilities;
   }
 
-  public String toString(){
-    String maxRvLengthString = "";
+  public String getAccessibleString(){
     if (accessible.equals("f")){
-      accessible = "No";
-    }
-    else if(accessible.equals("t")){
-      accessible = "Yes";
-    }
-    if(maxRvLength == 0){
-      maxRvLengthString = "N/A";
+      return "No";
     }
     else {
-      maxRvLengthString = maxRvLength + "";
-    }
-    if (utilities.equals("f")){
-      utilities = "N/A";
-    }
-    else if(utilities.equals("t")){
-      utilities = "Yes";
+      return "Yes";
     }
 
-    return siteNumber + " " + maxOccupancy + " " + accessible + " " + maxRvLengthString + " " + utilities + " ";
+  }
+
+  public String getRVLenString(){
+    if(maxRvLength == 0){
+      return "N/A";
+    }
+    else {
+      return maxRvLength + "";
+    }
+  }
+
+  public String getUtilitiesString(){
+    if (utilities.equals("f")){
+      return "N/A";
+    }
+    else {
+      return "Yes";
+    }
+  }
+
+  public String[] toArray(){
+    return new String[]{"" + siteNumber, "" + maxOccupancy, getAccessibleString(), getRVLenString(), getUtilitiesString(), ""};
   }
 
 }

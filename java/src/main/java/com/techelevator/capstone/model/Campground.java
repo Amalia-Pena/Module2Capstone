@@ -68,4 +68,8 @@ public class Campground {
     return name + " " + openFromMm + " " + openToMm + " " + dailyFee;
   }
 
+  public String[] toArray(){
+    return new String[] {"#" + campgroundId + "   ", name, openFromMm, openToMm, dailyFee};
+  }
+
 }
